@@ -1,0 +1,69 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔄 Stagging files."
+STAGED_FILES=$(git diff --name-only --cached)
+
+# Check ESLint Standards
+bun run lint ||
+(
+  echo "❌ Eslint has detected some errors. You must fix that."
+  false;
+)
+
+# Format code
+bun run format ||
+{
+  echo "❌ You didn't format the code. Prettier going to work for you."
+  false;
+}
+
+# Check if there are any changes after formatting
+if [ -n "$(git diff)" ]; then
+  echo "🪄 Prettier has made formatting changes to your code."
+  echo "📝 Current changes:"
+  git status -s
+
+  echo ""
+  echo "❓ Do you want to add these formatting changes to your commit? (Y/n)"
+  read -r response
+
+  if [[ "$response" =~ ^[Nn]$ ]]; then
+    echo "⏭️ Skipping formatting changes. You may need to format manually later."
+  else
+    echo "✅ Adding formatted files to commit..."
+    git add .
+  fi
+	for file in $STAGED_FILES; do
+		if [ -f "$file" ]; then
+			git add "$file"
+		fi
+	done
+	echo "🪄 Prettier will make formatting changes to your code."
+	git commit -m "fix: formatting changes with prettier before pushing" -m "This is a pre-push hook that will format the code before pushing."
+fi
+
+# Build code
+bun run build ||
+{
+  echo "❌ The build failed. This is a real problem."
+  false;
+}
+
+# Check if this branch is dev or main to avoid pull from those two branches.
+BRANCH=$(git branch --show-current)
+
+if [ "$BRANCH" = "main" ]; then
+  echo "⏭️ On main branch, skipping pull."
+elif [ "$BRANCH" = "dev" ]; then
+  echo "⛙ On dev branch, pulling from main."
+  git pull origin main
+else
+  echo "⛙ Let's try to pull from dev."
+  git pull origin dev
+fi
+
+echo ""
+echo "🎉 Your done!"
+echo ""
+
