@@ -1,5 +1,5 @@
 {
-	"name": "chitchiat",
+	"name": "sckt-msn",
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
@@ -69,6 +69,7 @@
 		"@oslojs/crypto": "^1.0.1",
 		"@oslojs/encoding": "^1.1.0",
 		"drizzle-orm": "^0.40.0",
-		"postgres": "^3.4.5"
+		"postgres": "^3.4.5",
+		"tailwind-merge": "^3.3.1"
 	}
 }
